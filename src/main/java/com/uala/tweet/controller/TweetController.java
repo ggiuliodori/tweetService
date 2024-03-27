@@ -27,7 +27,7 @@ public class TweetController {
     public ResponseEntity<String> createTweet(@RequestBody TweetModel tweet) {
         try {
             TweetModel savedTweet = tweetRepository.save(tweet);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedTweet.getId());
+            return ResponseEntity.status(HttpStatus.CREATED).body("Tweet generado con ID: " + savedTweet.getId());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al guardar el tweet: " + e.getMessage());
         }
