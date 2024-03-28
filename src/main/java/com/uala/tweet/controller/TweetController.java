@@ -1,7 +1,9 @@
 package com.uala.tweet.controller;
 
-import com.uala.tweet.model.TweetModel;
+import com.uala.tweet.model.api.TweetModelResponse;
+import com.uala.tweet.model.entity.TweetModelEntity;
 import com.uala.tweet.repository.TweetRepository;
+import com.uala.tweet.service.TweetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,41 +11,38 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 public class TweetController {
 
     private final TweetRepository tweetRepository;
+    private final TweetService tweetService;
 
     @Autowired
-    public TweetController(TweetRepository tweetRepository) {
+    public TweetController(TweetRepository tweetRepository, TweetService tweetService) {
         this.tweetRepository = tweetRepository;
+        this.tweetService = tweetService;
     }
 
     @PostMapping("/api/tweets")
-    public ResponseEntity<String> createTweet(@RequestBody TweetModel tweet) {
+    public ResponseEntity<TweetModelResponse> createTweet(@RequestBody TweetModelEntity tweet) {
         try {
-            TweetModel savedTweet = tweetRepository.save(tweet);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Tweet generado con ID: " + savedTweet.getId());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al guardar el tweet: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/tweets/latest")
-    public ResponseEntity<List<TweetModel>> getLatestTweetsByUserIds(@RequestBody List<String> userIds) {
-        try {
-            List<TweetModel> latestTweets = new ArrayList<>();
-            for (String userId : userIds) {
-                Optional<TweetModel> latestTweetOptional = tweetRepository.findFirstByUserIdOrderByTimestampDesc(userId);
-                latestTweetOptional.ifPresent(latestTweets::add);
-            }
-            return ResponseEntity.ok(latestTweets);
+            TweetModelResponse savedTweet = tweetService.saveTweet(tweet);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedTweet);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    @PostMapping("/tweets/latest")
+    public ResponseEntity<List<TweetModelResponse>> getLatestTweetsByUserIds(@RequestBody List<String> userIds) {
+        try {
+            return tweetService.getListTweetResponse(userIds);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
 }
